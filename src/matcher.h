@@ -3,13 +3,15 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <iomanip>
 #include <math.h>
 #include <deque>
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
 
-#include "csvparser.h"
+#ifndef MATCHER_H
+#define MATCHER_H
 
 using namespace std;
 
@@ -17,9 +19,25 @@ class Dialplan;
 static Dialplan *dialplans;
 int dialplans_count = 0;
 
+void
+dump_tm(struct tm *tm)
+{
+    cout << tm->tm_year + 1900 << "-" << tm->tm_mon << "-" << tm->tm_mday;
+    cout << " ";
+    cout << setw(2) << setfill('0') << tm->tm_hour << ":";
+    cout << setw(2) << setfill('0') << tm->tm_min << ":";
+    cout << setw(2) << setfill('0') << tm->tm_sec << endl;
+}
+
 class Route
 {
 public:
+    Route() {
+        for (int i=0; i<10; i++) {
+            destination[i] = 0;
+        }
+        retail_price = vendor_price = billing_interval = connect_charge = 0.0;
+    }
   Route *destination[10];
   double retail_price;
   double vendor_price;
@@ -34,8 +52,8 @@ public:
     cout << "Connect Charge:   " << connect_charge << endl;
   }
 
-  double price(double minutes) {
-    return (ceil(minutes / billing_interval) * billing_interval * retail_price + connect_charge);
+  double price(double seconds) {
+    return (ceil(seconds / billing_interval) * retail_price + connect_charge);
   }
 };
 
@@ -43,7 +61,7 @@ class Dialplan
 {
 public:
 
-  Dialplan(Route *h) : head(h) {}
+  Dialplan(Route *h) : head(h), next(0) {}
   ~Dialplan() {
     Dialplan::free_routes(head);
     Dialplan *d = next;
@@ -134,7 +152,7 @@ public:
     Dialplan *d = dialplans;
     for (int i=0; i<dialplans_count; i++) {
       //cout << "match(" << start << ", " << dow << "): startHour=" << d->startHour << " endHour=" << d->endHour << " dow=" << d->dow << endl;
-      if (start >= d->startHour
+      if (start >= d->startHour && start <= d->endHour
           && dow & d->dow)
         return d;
       d = d->next;
@@ -217,42 +235,59 @@ public:
     time_t timeOfCall = this->startTime;
     time_t ttlCall = this->endTime;
     double total = 0.0;
+    int loop = 0;
+    //struct tm *st = localtime(&this->startTime);
+    //dump_tm(st);
+
+    //st = localtime(&this->endTime);
+    //dump_tm(st);
 
     while (lenOfCall > 0.0) {
       struct tm * timeinfo = localtime(&timeOfCall);
       long startHour = timeinfo->tm_hour;
+      //cout << "startHour=" << startHour << endl;
 
       dp = Dialplan::match(startHour, Dialplan::to_dow(timeinfo->tm_wday));
       if (!dp) {
         printf("Cannot find a matching dialplan.\n");
         throw string("Cannot rate call. No matching dialplan.");
       }
+      //dp->dump();
 
       struct tm tinfo;
+      memset(&tinfo, 0, sizeof(tinfo));
       tinfo.tm_year = timeinfo->tm_year;
       tinfo.tm_mon = timeinfo->tm_mon;
       tinfo.tm_mday = timeinfo->tm_mday;
       tinfo.tm_hour = dp->endHour;
       tinfo.tm_min = 59;
       tinfo.tm_sec = 59;
+      tinfo.tm_isdst = 0;
+      //dump_tm(&tinfo);
 
       time_t endingInterval = mktime(&tinfo);
+      //cout << "endingInterval=" << endingInterval << endl;
       if (endingInterval > ttlCall) {
         endingInterval = ttlCall;
       }
-      time_t rem = endingInterval + 1 - timeOfCall;
-      time_t billingSeconds = rem;
+      //cout << "after endingInterval=" << endingInterval << " endTime=" << this->endTime << endl;
+      time_t rem = endingInterval - timeOfCall;
+      if (loop++) {rem++;}
+      time_t billingSeconds = lenOfCall - rem;
+      //cout << "billingSeconds=" << billingSeconds;
+      //cout << " timeOfCall=" << timeOfCall;
+      //cout << " endingInterval=" << endingInterval << " rem=" << rem << endl;
       if (billingSeconds < 0) billingSeconds = 0;
       lenOfCall -= rem;
 
       m = dp->match(this->destination.c_str());
       //m->dump();
-      total += m->price(billingSeconds);
+      total += m->price(rem);
       if (rem < 1) break;
 
       Leg *l = new Leg();
-      l->price = m->price(billingSeconds);
-      l->seconds = billingSeconds;
+      l->price = m->price(rem);
+      l->seconds = rem;
       l->route = m;
       l->dialplan = dp;
       l->next = this->head;
@@ -260,14 +295,18 @@ public:
 
       if (billingSeconds > 0) {
         struct tm tinfo;
+        memset(&tinfo, 0, sizeof(tinfo));
         tinfo.tm_year = timeinfo->tm_year;
         tinfo.tm_mon = timeinfo->tm_mon;
         tinfo.tm_mday = timeinfo->tm_mday;
         tinfo.tm_hour = dp->endHour + 1;
         tinfo.tm_min = 0;
         tinfo.tm_sec = 0;
+        tinfo.tm_isdst = 0;
         time_t toc = mktime(&tinfo);
         timeOfCall = toc;
+        //dump_tm(&tinfo);
+        //cout << "new timeOfCall=" << timeOfCall << endl;
       }
     }
     this->price = total;
@@ -280,128 +319,4 @@ public:
   time_t startTime, endTime;
 };
 
-void
-dump_call(Call &call)
-{
-  cout << "Call from +" << call.source << " to +" << call.destination << endl;
-  cout << "Total Length of call: " << call.seconds << endl;
-  cout << "Total cost of call: " << call.price << endl;
-  for (Leg *l = call.head; l!=NULL; l = l->next) {
-    cout << "Leg,Price,Seconds" << endl;
-    cout << l->route->id << "," << l->price << "," << l->seconds << endl;
-  }
-}
-
-void
-dump_tm(struct tm *tm)
-{
-    cout << tm->tm_year + 1900 << "-" << tm->tm_mon << "-" << tm->tm_mday;
-    cout << " ";
-    cout << tm->tm_hour << ":" << tm->tm_min << ":" << tm->tm_sec << endl;
-}
-
-int
-main(int argc, char *argv[])
-{
-  /*
-  Route r1, r2, r3;
-  r3.retail_price = 0.002;
-  r3.vendor_price = 0;
-  r3.billing_interval = 6;
-  r3.connect_charge = 0;
-
-  r2.destination[4] = &r3;
-  r2.retail_price = 0.0035;
-  r2.vendor_price = 0.00175;
-  r2.billing_interval = 6;
-  r2.connect_charge = 0;
-  r1.destination[1] = &r2;
-  Dialplan dp1(&r1);
-  dp1.startHour = 0;
-  dp1.endHour = 23;
-  dp1.dow = DOW_ALL;
-  dialplans = &dp1;
-  dialplans_count = 1;
-  */
-  Dialplan *dp1 = NULL;
-  long id = 0;
-
-  for (int i = 1; i < argc; ++i) {
-    ifstream rates(argv[i]);
-    if (!rates) {
-      fprintf(stderr, "Error reading rate file: %s\n", strerror(errno));
-      return (-1);
-    }
-    Route *r1 = new Route;
-    dp1 = new Dialplan(r1);
-    dp1->next = dialplans;
-    dialplans = dp1;
-    dialplans_count++;
-
-    string dow;
-    rates >> dp1->startHour;
-    rates >> dp1->endHour;
-    rates >> dow;
-    cout << "dow = " << dow << endl;
-    try {
-      dp1->dow = Dialplan::to_dow(dow);
-    } catch (...) {
-      cerr << "Error parsing dialplan." << endl;
-      return (-1);
-    }
-
-    while (!rates.eof()) {
-      string dest;
-      rates >> dest;
-      Route *r = dp1->find(dest.c_str());
-      if (r) {
-        rates >> r->retail_price;
-        rates >> r->vendor_price;
-        rates >> r->billing_interval;
-        rates >> r->connect_charge;
-        r->id = id++;
-        r->dump();
-      }
-    }
-    rates.close();
-  }
-
-  cout << "Loaded " << dialplans_count << " dialplans..." << endl;
-
-  Parser p;
-  std::ios_base::sync_with_stdio(false);
-
-  while (!std::cin.eof()) {
-    if (p.feed(std::cin.get(), std::cin.peek()) == 1) {
-        std::vector<std::string> &ref = p.getLine();
-        for (int i=0; i<ref.size(); i++) {
-            std::cout << ref[i] << "\t";
-        }
-        double amount = 0.0;
-        struct tm tm;
-        if (ref[14] == "ANSWERED") {
-          Call *c = new Call;
-          c->source = ref[1];
-          c->destination = ref[2];
-          c->seconds = atol(ref[13].c_str());
-          strptime(ref[10].c_str(), "%Y-%m-%d %H:%M:%S", &tm);
-          c->startTime = mktime(&tm);
-          c->endTime = c->startTime + c->seconds;
-          amount = c->rate();
-
-          //dump_call(*c);
-          delete c;
-        }
-        cout << amount;
-        ref.clear();
-        std::cout << std::endl;
-    }
-  }
-
-
-
-  delete dp1;
-  dp1 = NULL;
-
-  return (0);
-}
+#endif

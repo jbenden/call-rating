@@ -1,3 +1,5 @@
 matcher
 matcher.dSYM
 .DS_Store
+tests
+tests.dSYM
