@@ -33,7 +33,7 @@ pricing, which are the following fields all separated by a space.
 * Retail Amount (amount charged per billing interval)
 * Vendor Amount (amount costed per billing interval)
 * Billing Interval (interval to round calls to. eg: 6 for six second
-  billing or 60 for second interval billing.)
+  billing or 60 for minute interval billing.)
 * Connect Charge (fixed amount to charge at start of call. Used for
   rating calls to 411, as an example.)
 
