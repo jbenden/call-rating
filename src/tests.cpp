@@ -8,9 +8,9 @@ dump_call(Call &call)
   cout << "Call from +" << call.source << " to +" << call.destination << endl;
   cout << "Total Length of call: " << call.seconds << endl;
   cout << "Total cost of call: " << call.price << endl;
-  cout << "Leg,Price,Seconds" << endl;
+  cout << "Route Price      Seconds" << endl;
   for (Leg *l = call.head; l!=NULL; l = l->next) {
-    cout << setw(5) << setfill('0') << l->route->id << setfill(' ') << " " << setw(10) << l->price << " " << setw(5) << l->seconds << endl;
+    cout << setw(5) << setfill('0') << l->route->id << setfill(' ') << " " << setw(10) << l->price << " " << setw(7) << l->seconds << endl;
   }
 }
 

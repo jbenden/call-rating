@@ -37,6 +37,7 @@ public:
             destination[i] = 0;
         }
         retail_price = vendor_price = billing_interval = connect_charge = 0.0;
+        id = 0;
     }
   Route *destination[10];
   double retail_price;
