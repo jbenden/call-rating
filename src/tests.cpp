@@ -8,9 +8,9 @@ dump_call(Call &call)
   cout << "Call from +" << call.source << " to +" << call.destination << endl;
   cout << "Total Length of call: " << call.seconds << endl;
   cout << "Total cost of call: " << call.price << endl;
+  cout << "Leg,Price,Seconds" << endl;
   for (Leg *l = call.head; l!=NULL; l = l->next) {
-    cout << "Leg,Price,Seconds" << endl;
-    cout << l->route->id << "," << l->price << "," << l->seconds << endl;
+    cout << setw(5) << setfill('0') << l->route->id << setfill(' ') << " " << setw(10) << l->price << " " << setw(5) << l->seconds << endl;
   }
 }
 
@@ -251,4 +251,27 @@ TEST_F(CallDoubleTest, Targeted_Matching_Double_Route) {
   EXPECT_EQ(c->head->price, 0.10);
   EXPECT_EQ(c->head->next->price, 0.022);
   EXPECT_DOUBLE_EQ(0.122, amount);
+}
+
+TEST_F(CallDoubleTest, Targeted_Matching_VeryLongCall_Route) {
+  struct tm tm;
+  Call *c = new Call;
+  c->source = "1";
+  c->destination = "14165551212";
+  memset(&tm, 0, sizeof(tm));
+  strptime("2014-07-04 11:58:55", "%Y-%m-%d %H:%M:%S", &tm);
+  c->startTime = mktime(&tm);
+  memset(&tm, 0, sizeof(tm));
+  strptime("2014-07-05 01:05:00", "%Y-%m-%d %H:%M:%S", &tm);
+  c->endTime = mktime(&tm);
+  c->seconds = c->endTime - c->startTime;
+  double amount = c->rate();
+  EXPECT_EQ(c->head->seconds, 3901);
+  EXPECT_EQ(c->head->next->seconds, 43200);
+  EXPECT_EQ(c->head->next->next->seconds, 64);
+  //dump_call(*c);
+  EXPECT_EQ(c->head->price, 1.302);
+  EXPECT_EQ(c->head->next->price, 18.0);
+  EXPECT_EQ(c->head->next->next->price, 0.022);
+  EXPECT_DOUBLE_EQ(19.324, amount);
 }
