@@ -56,6 +56,10 @@ public:
   double price(double seconds) {
     return (ceil(seconds / billing_interval) * retail_price + connect_charge);
   }
+
+  double vendorPrice(double seconds) {
+    return (ceil(seconds / billing_interval) * vendor_price + connect_charge);
+  }
 };
 
 class Dialplan
@@ -218,7 +222,7 @@ public:
 class Call
 {
 public:
-  Call() : head(NULL), price(0.0), seconds(0.0), source(""), destination("") {}
+  Call() : head(NULL), price(0.0), vendorPrice(0.0), seconds(0.0), source(""), destination("") {}
   ~Call() {
     Leg *l = head;
     while (l) {
@@ -227,6 +231,91 @@ public:
       l = l->next;
       if (j) delete j;
     }
+  }
+
+  double vendorRate(void) {
+    Dialplan *dp = NULL;
+    Route *m;
+    double lenOfCall = this->seconds;
+    time_t timeOfCall = this->startTime;
+    time_t ttlCall = this->endTime;
+    double total = 0.0;
+    int loop = 0;
+    //struct tm *st = localtime(&this->startTime);
+    //dump_tm(st);
+
+    //st = localtime(&this->endTime);
+    //dump_tm(st);
+
+    while (lenOfCall > 0.0) {
+      struct tm * timeinfo = localtime(&timeOfCall);
+      long startHour = timeinfo->tm_hour;
+      //cout << "startHour=" << startHour << endl;
+
+      dp = Dialplan::match(startHour, Dialplan::to_dow(timeinfo->tm_wday));
+      if (!dp) {
+        printf("Cannot find a matching dialplan.\n");
+        throw string("Cannot rate call. No matching dialplan.");
+      }
+      //dp->dump();
+
+      struct tm tinfo;
+      memset(&tinfo, 0, sizeof(tinfo));
+      tinfo.tm_year = timeinfo->tm_year;
+      tinfo.tm_mon = timeinfo->tm_mon;
+      tinfo.tm_mday = timeinfo->tm_mday;
+      tinfo.tm_hour = dp->endHour;
+      tinfo.tm_min = 59;
+      tinfo.tm_sec = 59;
+      tinfo.tm_isdst = 0;
+      //dump_tm(&tinfo);
+
+      time_t endingInterval = mktime(&tinfo);
+      //cout << "endingInterval=" << endingInterval << endl;
+      if (endingInterval > ttlCall) {
+        endingInterval = ttlCall;
+      }
+      //cout << "after endingInterval=" << endingInterval << " endTime=" << this->endTime << endl;
+      time_t rem = endingInterval - timeOfCall;
+      if (loop++) {rem++;}
+      time_t billingSeconds = lenOfCall - rem;
+      //cout << "billingSeconds=" << billingSeconds;
+      //cout << " timeOfCall=" << timeOfCall;
+      //cout << " endingInterval=" << endingInterval << " rem=" << rem << endl;
+      if (billingSeconds < 0) billingSeconds = 0;
+      lenOfCall -= rem;
+
+      m = dp->match(this->destination.c_str());
+      //m->dump();
+      total += m->vendorPrice(rem);
+      if (rem < 1) break;
+
+      Leg *l = new Leg();
+      l->price = m->vendorPrice(rem);
+      l->seconds = rem;
+      l->route = m;
+      l->dialplan = dp;
+      l->next = this->head;
+      this->head = l;
+
+      if (billingSeconds > 0) {
+        struct tm tinfo;
+        memset(&tinfo, 0, sizeof(tinfo));
+        tinfo.tm_year = timeinfo->tm_year;
+        tinfo.tm_mon = timeinfo->tm_mon;
+        tinfo.tm_mday = timeinfo->tm_mday;
+        tinfo.tm_hour = dp->endHour + 1;
+        tinfo.tm_min = 0;
+        tinfo.tm_sec = 0;
+        tinfo.tm_isdst = 0;
+        time_t toc = mktime(&tinfo);
+        timeOfCall = toc;
+        //dump_tm(&tinfo);
+        //cout << "new timeOfCall=" << timeOfCall << endl;
+      }
+    }
+    this->vendorPrice = total;
+    return (this->vendorPrice);
   }
 
   double rate(void) {
@@ -315,6 +404,7 @@ public:
   }
   Leg *head;
   double price;
+  double vendorPrice;
   double seconds;
   string source, destination;
   time_t startTime, endTime;

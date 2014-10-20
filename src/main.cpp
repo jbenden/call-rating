@@ -71,7 +71,7 @@ main(int argc, char *argv[])
         for (int i=0; i<ref.size(); i++) {
             std::cout << ref[i] << "\t";
         }
-        double amount = 0.0;
+        double amount = 0.0, cost = 0.0;
         struct tm tm;
         if (ref[14] == "ANSWERED") {
           Call *c = new Call;
@@ -82,11 +82,12 @@ main(int argc, char *argv[])
           c->startTime = mktime(&tm);
           c->endTime = c->startTime + c->seconds;
           amount = c->rate();
-
+          cost = c->vendorRate();
           //dump_call(*c);
           delete c;
         }
         cout << amount;
+        cout << "\t" << cost;
         ref.clear();
         std::cout << std::endl;
     }
