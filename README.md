@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/jbenden/call-rating.svg?style=flat&branch=master)](https://travis-ci.org/jbenden/call-rating)
 Call Rating
 ===========
 
