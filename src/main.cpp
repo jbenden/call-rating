@@ -54,7 +54,7 @@ main(int argc, char *argv[])
         rates >> r->billing_interval;
         rates >> r->connect_charge;
         r->id = id++;
-        r->dump();
+        //r->dump();
       }
     }
     rates.close();
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
           c->startTime = mktime(&tm);
           c->endTime = c->startTime + c->seconds;
           amount = c->rate();
-          cost = c->vendorRate();
+          cost = c->vendorPrice;
           //dump_call(*c);
           delete c;
         }

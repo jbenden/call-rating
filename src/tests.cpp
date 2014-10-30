@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <exception>
 
 #include "matcher.h"
 
@@ -39,6 +40,80 @@ class CallDefaultTest : public ::testing::Test {
         Dialplan *dp1;
 };
 
+TEST_F(CallDefaultTest, AllDayOfWeekHandling) {
+
+  EXPECT_EQ(Dialplan::to_dow("any"), DOW_ALL);
+
+}
+
+TEST_F(CallDefaultTest, MonDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("mon"), DOW_MONDAY);
+}
+
+TEST_F(CallDefaultTest, TueDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("tue"), DOW_TUESDAY);
+}
+
+TEST_F(CallDefaultTest, WedDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("wed"), DOW_WEDNESDAY);
+}
+
+TEST_F(CallDefaultTest, ThuDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("thu"), DOW_THURSDAY);
+}
+
+TEST_F(CallDefaultTest, FriDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("fri"), DOW_FRIDAY);
+}
+
+TEST_F(CallDefaultTest, SatDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("sat"), DOW_SATURDAY);
+}
+
+TEST_F(CallDefaultTest, SunDayOfWeekHandling) {
+  EXPECT_EQ(Dialplan::to_dow("sun"), DOW_SUNDAY);
+}
+
+TEST_F(CallDefaultTest, BadDayOfWeekHandling) {
+  EXPECT_ANY_THROW(Dialplan::to_dow("fsd"));
+}
+
+TEST_F(CallDefaultTest, 8DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(8), DOW_ALL);
+}
+
+TEST_F(CallDefaultTest, 1DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(1), DOW_MONDAY);
+}
+
+TEST_F(CallDefaultTest, 2DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(2), DOW_TUESDAY);
+}
+
+TEST_F(CallDefaultTest, 3DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(3), DOW_WEDNESDAY);
+}
+
+TEST_F(CallDefaultTest, 4DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(4), DOW_THURSDAY);
+}
+
+TEST_F(CallDefaultTest, 5DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(5), DOW_FRIDAY);
+}
+
+TEST_F(CallDefaultTest, 6DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(6), DOW_SATURDAY);
+}
+
+TEST_F(CallDefaultTest, 0DayOfWeek) {
+  EXPECT_EQ(Dialplan::to_dow(0), DOW_SUNDAY);
+}
+
+TEST_F(CallDefaultTest, BadIntegerDayOfWeek) {
+  EXPECT_ANY_THROW(Dialplan::to_dow(10));
+}
+
 TEST_F(CallDefaultTest, Default_Matching_Route) {
   struct tm tm;
   Call *c = new Call;
@@ -49,10 +124,9 @@ TEST_F(CallDefaultTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
-  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
-  EXPECT_EQ(vendorAmount, 0.00175);
+  EXPECT_EQ(c->head->vendorPrice, 0.00175);
 }
 
 class CallSixtyTest : public ::testing::Test {
@@ -90,10 +164,9 @@ TEST_F(CallSixtyTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
-  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.025);
-  EXPECT_EQ(vendorAmount, 0.00175);
+  EXPECT_EQ(c->head->vendorPrice, 0.00175);
 }
 
 class CallTest : public ::testing::Test {
@@ -136,10 +209,9 @@ TEST_F(CallTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
-  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
-  EXPECT_EQ(vendorAmount, 0.00175);
+  EXPECT_EQ(c->head->vendorPrice, 0.00175);
 }
 
 TEST_F(CallTest, Default_Specific_Route) {
