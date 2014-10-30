@@ -187,7 +187,7 @@ public:
       else
         break;
     }
-    return matchingRoute;
+    return (matchingRoute == head ? 0 : matchingRoute);
   }
 
   Route *find(const char *e163) {
@@ -294,6 +294,9 @@ public:
       lenOfCall -= rem;
 
       m = dp->match(this->destination.c_str());
+      if (!m) {
+          throw std::exception();
+      }
       //m->dump();
       total += m->price(rem);
       vtotal += m->vendorPrice(rem);
