@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/jbenden/call-rating.svg?style=flat&branch=master)](https://travis-ci.org/jbenden/call-rating)
+[![Coverage Status](https://coveralls.io/repos/jbenden/call-rating/badge.png?branch=master)](https://coveralls.io/r/jbenden/call-rating?branch=master)
 Call Rating
 ===========
 
