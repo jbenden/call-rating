@@ -19,6 +19,7 @@ class Dialplan;
 static Dialplan *dialplans;
 int dialplans_count = 0;
 
+#ifdef DEBUG
 void
 dump_tm(struct tm *tm)
 {
@@ -28,6 +29,7 @@ dump_tm(struct tm *tm)
     cout << setw(2) << setfill('0') << tm->tm_min << ":";
     cout << setw(2) << setfill('0') << tm->tm_sec << endl;
 }
+#endif
 
 class Route
 {
@@ -46,12 +48,14 @@ public:
   double connect_charge;
   long id;
 
+#ifdef DEBUG
   void dump(void) {
     cout << "Retail Price:     " << retail_price << endl;
     cout << "Vendor Price:     " << vendor_price << endl;
     cout << "Billing Interval: " << billing_interval << endl;
     cout << "Connect Charge:   " << connect_charge << endl;
   }
+#endif
 
   double price(double seconds) {
     return (ceil(seconds / billing_interval) * retail_price + connect_charge);
@@ -106,10 +110,12 @@ public:
 #define DOW_ALL (DOW_MONDAY|DOW_TUESDAY|DOW_WEDNESDAY|DOW_THURSDAY|DOW_FRIDAY|DOW_SATURDAY|DOW_SUNDAY)
   int dow;
 
+#ifdef DEBUG
   void dump(void) {
     cout << "Dialplan startHour=" << startHour << " endHour=" << endHour;
     cout << " dow=" << dow << endl;
   }
+#endif
 
   static int to_dow(const string &input) {
     if (input == "any")
@@ -216,6 +222,7 @@ public:
   Dialplan *dialplan;
   Route *route;
   double price;
+  double vendorPrice;
   double seconds;
 };
 
@@ -291,7 +298,7 @@ public:
       if (rem < 1) break;
 
       Leg *l = new Leg();
-      l->price = m->vendorPrice(rem);
+      l->vendorPrice = m->vendorPrice(rem);
       l->seconds = rem;
       l->route = m;
       l->dialplan = dp;
@@ -324,7 +331,7 @@ public:
     double lenOfCall = this->seconds;
     time_t timeOfCall = this->startTime;
     time_t ttlCall = this->endTime;
-    double total = 0.0;
+    double total = 0.0, vtotal = 0.0;
     int loop = 0;
     //struct tm *st = localtime(&this->startTime);
     //dump_tm(st);
@@ -373,10 +380,12 @@ public:
       m = dp->match(this->destination.c_str());
       //m->dump();
       total += m->price(rem);
+      vtotal += m->vendorPrice(rem);
       if (rem < 1) break;
 
       Leg *l = new Leg();
       l->price = m->price(rem);
+      l->vendorPrice = m->vendorPrice(rem);
       l->seconds = rem;
       l->route = m;
       l->dialplan = dp;
@@ -400,6 +409,7 @@ public:
       }
     }
     this->price = total;
+    this->vendorPrice = vtotal;
     return (this->price);
   }
   Leg *head;

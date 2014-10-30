@@ -49,8 +49,10 @@ TEST_F(CallDefaultTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
+  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
+  EXPECT_EQ(vendorAmount, 0.00175);
 }
 
 class CallSixtyTest : public ::testing::Test {
@@ -88,8 +90,10 @@ TEST_F(CallSixtyTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
+  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.025);
+  EXPECT_EQ(vendorAmount, 0.00175);
 }
 
 class CallTest : public ::testing::Test {
@@ -132,8 +136,10 @@ TEST_F(CallTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   double amount = c->rate();
+  double vendorAmount = c->vendorRate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
+  EXPECT_EQ(vendorAmount, 0.00175);
 }
 
 TEST_F(CallTest, Default_Specific_Route) {
@@ -229,7 +235,9 @@ TEST_F(CallDoubleTest, Default_Matching_Route) {
   EXPECT_EQ(c->head->next->seconds, 64);
   //dump_call(*c);
   EXPECT_EQ(c->head->price, 0.14);
+  EXPECT_EQ(c->head->vendorPrice, 0.07);
   EXPECT_EQ(c->head->next->price, 0.0385);
+  EXPECT_EQ(c->head->next->vendorPrice, 0.01925);
   EXPECT_DOUBLE_EQ(0.1785, amount);
 }
 
