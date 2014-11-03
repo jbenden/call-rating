@@ -3,3 +3,12 @@ matcher.dSYM
 .DS_Store
 tests
 tests.dSYM
+cmake_install.cmake
+CTestTestfile.cmake
+.coveralls.yml
+CMakeFiles
+CMakeCache.txt
+coverage
+src/rate-*
+Master.csv
+*.a

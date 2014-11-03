@@ -3,6 +3,7 @@
 
 #include "matcher.h"
 
+#if DEBUG
 void
 dump_call(Call &call)
 {
@@ -14,6 +15,7 @@ dump_call(Call &call)
     cout << setw(5) << setfill('0') << l->route->id << setfill(' ') << " " << setw(10) << l->price << " " << setw(7) << l->seconds << endl;
   }
 }
+#endif
 
 class CallDefaultTest : public ::testing::Test {
 

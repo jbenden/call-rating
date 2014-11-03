@@ -168,7 +168,6 @@ int main(int argc, char** argv)
         rates >> r->billing_interval;
         rates >> r->connect_charge;
         r->id = id++;
-        r->dump();
       }
     }
     rates.close();

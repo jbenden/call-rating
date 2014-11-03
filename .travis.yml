@@ -1,5 +1,7 @@
-install: make tests
-script: make test
+install: cmake .
+script:
+  - make
+  - ./src/tests
 language: cpp
 compiler:
   - clang
