@@ -56,6 +56,7 @@ public:
         c->startTime = timet;
         c->endTime = c->startTime + c->seconds;
         double amount = c->rate();
+        double vendorAmount = c->vendorPrice;
 
         if (req.hasToken("Accept", "application/json")) {
           resp.setContentType("application/json");
@@ -64,10 +65,11 @@ public:
           out << "\t\"source\": \"" << source << "\"," << endl;
           out << "\t\"destination\": \"" << destination << "\"," << endl;
           out << "\t\"amount\": " << amount << "," << endl;
+          out << "\t\"vendorAmount\": " << vendorAmount << "," << endl;
           out << "\t\"routes\": [" << endl;
           for (Leg *l = c->head; l!=NULL; l = l->next) {
             if (l != c->head) out << ",";
-            out << "[\"" << l->route->id << "\",\"" << l->price << "\",\"" << l->seconds << "\"]";
+            out << "[\"" << l->route->id << "\",\"" << l->price << "\",\"" << l->seconds << "\",\"" << l->vendorPrice << "\"]";
             out << endl;
           }
           out << "\t]" << endl;
@@ -80,9 +82,10 @@ public:
           out << "\t<source>" << source << "</source>" << endl;
           out << "\t<destination>" << destination << "</destination>" << endl;
           out << "\t<amount>" << amount << "</amount>" << endl;
+          out << "\t<vendorAmount>" << vendorAmount << "</vendorAmount>" << endl;
           out << "\t<routes>" << endl;
           for (Leg *l = c->head; l!=NULL; l = l->next) {
-            out << "\t\t<route id=\"" << l->route->id << "\" price=\"" << l->price << "\" seconds=\"" << l->seconds << "\" />" << endl;
+            out << "\t\t<route id=\"" << l->route->id << "\" price=\"" << l->price << "\" vendorAmount=\"" << l->vendorPrice << "\" seconds=\"" << l->seconds << "\" />" << endl;
           }
           out << "\t</routes>" << endl;
           out << "</call>";
