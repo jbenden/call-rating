@@ -45,6 +45,8 @@ class CallDefaultTest : public ::testing::Test {
 TEST_F(CallDefaultTest, AllDayOfWeekHandling) {
 
   EXPECT_EQ(Dialplan::to_dow("any"), DOW_ALL);
+  EXPECT_NE(dp1->find("1"), (Route *) NULL);
+  EXPECT_NE(dp1->find("9"), (Route *) NULL);
 
 }
 
