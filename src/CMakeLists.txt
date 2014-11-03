@@ -17,7 +17,7 @@ endif()
 
 enable_testing()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -O0")
-include_directories("${CMAKE_SOURCE_DIR}/../gtest-1.7.0/include")
+include_directories("${CMAKE_SOURCE_DIR}/gtest-1.7.0/include")
 add_executable(tests tests.cpp matcher.h)
 target_link_libraries(tests gtest_main)
 
