@@ -12,3 +12,13 @@ rescue JSON::ParserError
     print "Error parsing returned value."
     raise
 end
+print "\n\n"
+uri = '/rate?destination=14195551212&source=123456789&length=86400'
+client = Net::HTTP.new("localhost", 9090)
+string = client.get(uri, {'Accept' => 'text/xml'})
+begin
+    print string.body
+rescue JSON::ParserError
+    print "Error parsing returned value."
+    raise
+end
