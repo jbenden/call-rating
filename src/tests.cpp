@@ -131,6 +131,7 @@ TEST_F(CallDefaultTest, Default_Matching_Route) {
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
   EXPECT_EQ(c->head->vendorPrice, 0.00175);
+  delete c;
 }
 
 TEST_F(CallDefaultTest, No_Matching_Route) {
@@ -143,6 +144,7 @@ TEST_F(CallDefaultTest, No_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   EXPECT_ANY_THROW(c->rate());
+  delete c;
 }
 
 class CallSixtyTest : public ::testing::Test {
@@ -183,6 +185,7 @@ TEST_F(CallSixtyTest, Default_Matching_Route) {
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.025);
   EXPECT_EQ(c->head->vendorPrice, 0.00175);
+  delete c;
 }
 
 class CallTest : public ::testing::Test {
@@ -228,6 +231,7 @@ TEST_F(CallTest, Default_Matching_Route) {
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.0035);
   EXPECT_EQ(c->head->vendorPrice, 0.00175);
+  delete c;
 }
 
 TEST_F(CallTest, Default_Specific_Route) {
@@ -242,6 +246,7 @@ TEST_F(CallTest, Default_Specific_Route) {
   double amount = c->rate();
   EXPECT_EQ(c->head->seconds, 5);
   EXPECT_EQ(amount, 0.002);
+  delete c;
 }
 
 TEST_F(CallTest, Default_Specific2_Route) {
@@ -256,6 +261,7 @@ TEST_F(CallTest, Default_Specific2_Route) {
   double amount = c->rate();
   EXPECT_EQ(c->head->seconds, 65);
   EXPECT_EQ(amount, 0.022);
+  delete c;
 }
 
 class CallDoubleTest : public ::testing::Test {
@@ -327,6 +333,7 @@ TEST_F(CallDoubleTest, Default_Matching_Route) {
   EXPECT_EQ(c->head->next->price, 0.0385);
   EXPECT_EQ(c->head->next->vendorPrice, 0.01925);
   EXPECT_DOUBLE_EQ(0.1785, amount);
+  delete c;
 }
 
 TEST_F(CallDoubleTest, Targeted_Matching_Double_Route) {
@@ -347,6 +354,7 @@ TEST_F(CallDoubleTest, Targeted_Matching_Double_Route) {
   EXPECT_EQ(c->head->price, 0.10);
   EXPECT_EQ(c->head->next->price, 0.022);
   EXPECT_DOUBLE_EQ(0.122, amount);
+  delete c;
 }
 
 TEST_F(CallDoubleTest, Targeted_Matching_VeryLongCall_Route) {
@@ -370,6 +378,7 @@ TEST_F(CallDoubleTest, Targeted_Matching_VeryLongCall_Route) {
   EXPECT_EQ(c->head->next->price, 18.0);
   EXPECT_EQ(c->head->next->next->price, 0.022);
   EXPECT_DOUBLE_EQ(19.324, amount);
+  delete c;
 }
 
 class CallDoubleDayTest : public ::testing::Test {
@@ -432,4 +441,5 @@ TEST_F(CallDoubleDayTest, Default_Matching_Route) {
   c->startTime = mktime(&tm);
   c->endTime = c->startTime + c->seconds;
   EXPECT_ANY_THROW(c->rate());
+  delete c;
 }
